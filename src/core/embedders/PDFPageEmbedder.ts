@@ -124,14 +124,21 @@ class PDFPageEmbedder {
 
       let content: Uint8Array;
       if (stream instanceof PDFRawStream) {
-        content = decodePDFRawStream(stream).decode();
+        try {
+          content = decodePDFRawStream(stream).decode();
+        } catch (error) {
+          // Skip this stream if decoding fails
+          continue;
+        }
       } else if (stream instanceof PDFContentStream) {
         content = stream.getUnencodedContents();
       } else {
         throw new UnrecognizedStreamTypeError(stream);
       }
-
-      decodedContents.push(content, newline);
+      
+      if (content) {
+        decodedContents.push(content, newline);
+      }
     }
 
     return mergeIntoTypedArray(...decodedContents);
